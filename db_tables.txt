@@ -1,0 +1,132 @@
+CREATE TABLE `Addresses` (
+  `houseNumber` int(11) NOT NULL DEFAULT '0',
+  `postcode` varchar(20) NOT NULL DEFAULT '',
+  `roadName` varchar(60) DEFAULT NULL,
+  `cityName` varchar(40) DEFAULT NULL,
+  PRIMARY KEY (`houseNumber`,`postcode`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1
+
+
+CREATE TABLE `BicycleHasWheels` (
+  `bicycleSerialNumber` varchar(12) NOT NULL,
+  `wheelSerialNumber` varchar(12) NOT NULL,
+  `wheelBrandName` varchar(20) NOT NULL,
+  PRIMARY KEY (`bicycleSerialNumber`,`wheelSerialNumber`,`wheelBrandName`),
+  KEY `fk_wheelBrandName_idx` (`wheelBrandName`),
+  KEY `fk_wheelSerialNumber_idx` (`wheelSerialNumber`,`wheelBrandName`),
+  CONSTRAINT `fk_wheelId` FOREIGN KEY (`wheelSerialNumber`, `wheelBrandName`) REFERENCES `Wheels` (`serialNumber`, `brandName`) ON DELETE CASCADE ON UPDATE NO ACTION,
+  CONSTRAINT `fk_bicycleSerialNumber` FOREIGN KEY (`bicycleSerialNumber`) REFERENCES `Bicycles` (`serialNumber`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=latin1
+
+
+CREATE TABLE `Bicycles` (
+  `serialNumber` varchar(12) NOT NULL,
+  `customName` varchar(20) DEFAULT NULL,
+  `brandName` varchar(20) DEFAULT NULL,
+  `handlebarSerialNumber` varchar(12) DEFAULT NULL,
+  `frameSetSerialNumber` varchar(12) DEFAULT NULL,
+  `handlebarBrandName` varchar(20) DEFAULT NULL,
+  `frameSetBrandName` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`serialNumber`),
+  UNIQUE KEY `serialNumber_UNIQUE` (`serialNumber`),
+  KEY `fk_handlebarSerialNumber_idx` (`handlebarSerialNumber`),
+  KEY `fk_frameSets_idx` (`frameSetSerialNumber`,`frameSetBrandName`),
+  KEY `fk_handlebars_idx` (`handlebarSerialNumber`,`handlebarBrandName`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1
+
+
+CREATE TABLE `Customers` (
+  `customerId` int(11) NOT NULL DEFAULT '0',
+  `forename` varchar(20) DEFAULT NULL,
+  `surname` varchar(20) DEFAULT NULL,
+  `houseNumber` int(11) DEFAULT NULL,
+  `postcode` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`customerId`),
+  UNIQUE KEY `customerId_UNIQUE` (`customerId`),
+  KEY `fk_postcode_idx` (`postcode`),
+  KEY `fk_houseNumber_idx` (`houseNumber`,`postcode`),
+  CONSTRAINT `fk_address` FOREIGN KEY (`houseNumber`, `postcode`) REFERENCES `Addresses` (`houseNumber`, `postcode`) ON DELETE SET NULL ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=latin1
+
+
+CREATE TABLE `FrameSets` (
+  `serialNumber` varchar(12) NOT NULL,
+  `brandName` varchar(20) NOT NULL,
+  `frameSetName` varchar(20) DEFAULT NULL,
+  `forkSetName` varchar(20) DEFAULT NULL,
+  `gearSetName` varchar(20) DEFAULT NULL,
+  `hasShocks` tinyint(4) DEFAULT NULL,
+  `size` decimal(10,2) DEFAULT NULL,
+  `cost` decimal(10,2) DEFAULT NULL,
+  `stock` int(11) DEFAULT NULL,
+  PRIMARY KEY (`serialNumber`,`brandName`),
+  UNIQUE KEY `serialNumber_UNIQUE` (`serialNumber`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1
+
+
+CREATE TABLE `Handlebars` (
+  `serialNumber` varchar(12) NOT NULL,
+  `handlebarName` varchar(20) DEFAULT NULL,
+  `brandName` varchar(20) NOT NULL,
+  `type` enum('DROPPED','HIGH','STRAIGHT') DEFAULT NULL,
+  `cost` decimal(10,2) DEFAULT NULL,
+  `stock` int(11) DEFAULT NULL,
+  PRIMARY KEY (`brandName`,`serialNumber`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1
+
+
+CREATE TABLE `Items` (
+  `itemId` int(11) NOT NULL DEFAULT '0',
+  `quantity` int(11) DEFAULT NULL,
+  `cost` decimal(10,2) DEFAULT NULL,
+  `type` enum('BICYCLE','FRAMESET','HANDLEBAR','WHEEL') DEFAULT NULL,
+  `orderNumber` int(11) DEFAULT NULL,
+  PRIMARY KEY (`itemId`),
+  KEY `fk_orderNumber_idx` (`orderNumber`),
+  CONSTRAINT `fk_orderNumber` FOREIGN KEY (`orderNumber`) REFERENCES `Orders` (`orderNumber`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=latin1
+
+
+CREATE TABLE `Orders` (
+  `orderNumber` int(11) NOT NULL DEFAULT '0',
+  `date` date DEFAULT NULL,
+  `totalCost` decimal(10,2) DEFAULT NULL,
+  `status` enum('CONFIRMED','FULFILLED','PENDING') DEFAULT NULL,
+  `lines` int(11) DEFAULT NULL,
+  `amount` decimal(10,2) DEFAULT NULL,
+  `paymentAuthorized` tinyint(4) DEFAULT NULL,
+  `staffUsername` varchar(20) DEFAULT NULL,
+  `serialNumber` varchar(12) DEFAULT NULL,
+  `customerId` int(11) DEFAULT NULL,
+  PRIMARY KEY (`orderNumber`),
+  UNIQUE KEY `orderNumber_UNIQUE` (`orderNumber`),
+  KEY `fk_customerId_idx` (`customerId`),
+  KEY `fk_staffUsername_idx` (`staffUsername`),
+  KEY `fk_serialNumber_idx` (`serialNumber`),
+  CONSTRAINT `fk_customerId` FOREIGN KEY (`customerId`) REFERENCES `Customers` (`customerId`) ON DELETE CASCADE ON UPDATE NO ACTION,
+  CONSTRAINT `fk_serialNumber` FOREIGN KEY (`serialNumber`) REFERENCES `Bicycles` (`serialNumber`) ON DELETE SET NULL ON UPDATE NO ACTION,
+  CONSTRAINT `fk_staffUsername` FOREIGN KEY (`staffUsername`) REFERENCES `Staff` (`staffUsername`) ON DELETE SET NULL ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=latin1
+
+
+CREATE TABLE `Staff` (
+  `staffUsername` varchar(64) NOT NULL DEFAULT '',
+  `forename` varchar(20) DEFAULT NULL,
+  `surname` varchar(20) DEFAULT NULL,
+  `password` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`staffUsername`),
+  UNIQUE KEY `username_UNIQUE` (`staffUsername`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1
+
+
+CREATE TABLE `Wheels` (
+  `serialNumber` varchar(12) NOT NULL,
+  `wheelName` varchar(20) DEFAULT NULL,
+  `brandName` varchar(20) NOT NULL,
+  `diameter` decimal(10,2) DEFAULT NULL,
+  `tyreType` enum('HYBRID','MOUNTAIN','ROAD') DEFAULT NULL,
+  `brakeType` enum('DISK','RIM') DEFAULT NULL,
+  `cost` decimal(10,2) DEFAULT NULL,
+  `stock` int(11) DEFAULT NULL,
+  PRIMARY KEY (`serialNumber`,`brandName`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1
